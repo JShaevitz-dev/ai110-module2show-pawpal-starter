@@ -40,6 +40,14 @@ def test_add_task_tags_pet_name():
     assert task.pet_name == "Mochi"
 
 
+def test_adding_task_increases_pet_task_count():
+    pet = Pet("Mochi")
+    assert len(pet.tasks) == 0
+    pet.add_task(Task("Walk", 20))
+    pet.add_task(Task("Feed", 10))
+    assert len(pet.tasks) == 2
+
+
 def test_duplicate_pet_name_rejected():
     owner = make_owner()
     with pytest.raises(ValueError):
@@ -125,6 +133,14 @@ def test_conflicting_fixed_times_warn_and_lower_priority_moves():
 def test_back_to_back_fixed_tasks_are_not_conflicts():
     a, b = Task("A", 30, preferred_time="09:00"), Task("B", 10, preferred_time="09:30")
     assert Scheduler.detect_conflicts([a, b]) == []
+
+
+def test_tasks_at_exact_same_time_are_flagged():
+    walk = Task("Walk", 30, preferred_time="08:00", pet_name="Mochi")
+    meds = Task("Meds", 5, preferred_time="08:00", pet_name="Luna")
+    conflicts = Scheduler.detect_conflicts([walk, meds])
+    assert len(conflicts) == 1
+    assert "Walk" in conflicts[0] and "Meds" in conflicts[0]
 
 
 def test_every_scheduled_task_has_reason():
