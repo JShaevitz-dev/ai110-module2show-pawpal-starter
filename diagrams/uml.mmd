@@ -1,15 +1,68 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
+    %% Matches pawpal_system.py
 
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +str name
+        +int available_minutes
+        +str day_start
+        +str day_end
+        +list~Pet~ pets
+        +add_pet(pet) None
+        +get_pet(name) Pet
+        +all_tasks() list~Task~
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Pet {
+        +str name
+        +str species
+        +list~Task~ tasks
+        +add_task(task) None
+        +remove_task(task) None
     }
 
-    ClassName --> AnotherClass : relationship
+    class Task {
+        +str title
+        +int duration_minutes
+        +str priority
+        +str preferred_time
+        +str frequency
+        +date due_date
+        +bool completed
+        +str pet_name
+        +priority_rank() int
+        +is_due(on) bool
+        +mark_complete() Task
+    }
+
+    class Scheduler {
+        +Owner owner
+        +sort_by_priority(tasks)$ list~Task~
+        +sort_by_time(tasks)$ list~Task~
+        +filter_tasks(pet_name, completed, due_on) list~Task~
+        +detect_conflicts(tasks)$ list~str~
+        +complete_task(task) Task
+        +build_plan(day) DailyPlan
+    }
+
+    class DailyPlan {
+        +date day
+        +list~ScheduledTask~ scheduled
+        +list skipped
+        +list~str~ warnings
+        +total_minutes() int
+        +to_text() str
+    }
+
+    class ScheduledTask {
+        +Task task
+        +int start
+        +str reason
+        +end() int
+    }
+
+    Owner "1" o-- "*" Pet : owns
+    Pet "1" o-- "*" Task : needs
+    Scheduler --> Owner : plans for
+    Scheduler ..> DailyPlan : creates
+    DailyPlan "1" *-- "*" ScheduledTask : contains
+    ScheduledTask --> Task : wraps
