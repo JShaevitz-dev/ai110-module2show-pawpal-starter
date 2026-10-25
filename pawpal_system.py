@@ -54,6 +54,7 @@ class Task:
 
     @property
     def priority_rank(self) -> int:
+        """Numeric rank for sorting: high=3, medium=2, low=1."""
         return PRIORITY_RANK[self.priority]
 
     def is_due(self, on: date) -> bool:
@@ -79,10 +80,12 @@ class Pet:
     tasks: list[Task] = field(default_factory=list)
 
     def add_task(self, task: Task) -> None:
+        """Attach a task to this pet and stamp it with the pet's name."""
         task.pet_name = self.name
         self.tasks.append(task)
 
     def remove_task(self, task: Task) -> None:
+        """Remove a task from this pet's list."""
         self.tasks.remove(task)
 
 
@@ -97,14 +100,17 @@ class Owner:
     pets: list[Pet] = field(default_factory=list)
 
     def add_pet(self, pet: Pet) -> None:
+        """Add a pet; pet names must be unique for this owner."""
         if self.get_pet(pet.name) is not None:
             raise ValueError(f"A pet named {pet.name!r} already exists")
         self.pets.append(pet)
 
     def get_pet(self, name: str) -> Optional[Pet]:
+        """Return the pet with this name, or None if there isn't one."""
         return next((p for p in self.pets if p.name == name), None)
 
     def all_tasks(self) -> list[Task]:
+        """Return every task across all of this owner's pets."""
         return [t for pet in self.pets for t in pet.tasks]
 
 
@@ -116,6 +122,7 @@ class ScheduledTask:
 
     @property
     def end(self) -> int:
+        """End time in minutes after midnight."""
         return self.start + self.task.duration_minutes
 
 
@@ -130,9 +137,11 @@ class DailyPlan:
 
     @property
     def total_minutes(self) -> int:
+        """Total minutes of all scheduled tasks."""
         return sum(s.task.duration_minutes for s in self.scheduled)
 
     def to_text(self) -> str:
+        """Format the plan, skipped tasks, and warnings for the terminal."""
         lines = [f"Daily plan for {self.day.isoformat()}:"]
         for s in self.scheduled:
             t = s.task
@@ -182,6 +191,7 @@ class Scheduler:
         completed: Optional[bool] = None,
         due_on: Optional[date] = None,
     ) -> list[Task]:
+        """Return tasks matching every filter given; None means don't filter on it."""
         tasks = self.owner.all_tasks()
         if pet_name is not None:
             tasks = [t for t in tasks if t.pet_name == pet_name]
