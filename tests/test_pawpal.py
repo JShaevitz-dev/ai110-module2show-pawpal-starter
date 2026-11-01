@@ -130,6 +130,26 @@ def test_conflicting_fixed_times_warn_and_lower_priority_moves():
     assert all(a.end <= b.start for a, b in zip(ordered, ordered[1:]))
 
 
+def test_bumped_fixed_task_moves_later_not_earlier():
+    owner = make_owner(day_start="07:00")
+    add(owner, "Morning walk", 30, "high", preferred_time="08:00")
+    add(owner, "Meds", 5, "high", preferred_time="08:00")
+    plan = Scheduler(owner).build_plan(TODAY)
+    starts = {s.task.title: format_time(s.start) for s in plan.scheduled}
+    assert starts == {"Meds": "08:00", "Morning walk": "08:05"}
+    walk = next(s for s in plan.scheduled if s.task.title == "Morning walk")
+    assert "moved from 08:00 to 08:05" in walk.reason and "'Meds'" in walk.reason
+
+
+def test_bumped_fixed_task_goes_earlier_only_if_nothing_later_fits():
+    owner = make_owner(day_start="07:00", day_end="08:30")
+    add(owner, "Meds", 30, "high", preferred_time="08:00")
+    add(owner, "Walk", 30, "low", preferred_time="08:00")
+    plan = Scheduler(owner).build_plan(TODAY)
+    starts = {s.task.title: format_time(s.start) for s in plan.scheduled}
+    assert starts == {"Walk": "07:00", "Meds": "08:00"}
+
+
 def test_back_to_back_fixed_tasks_are_not_conflicts():
     a, b = Task("A", 30, preferred_time="09:00"), Task("B", 10, preferred_time="09:30")
     assert Scheduler.detect_conflicts([a, b]) == []

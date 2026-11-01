@@ -239,7 +239,8 @@ class Scheduler:
         1. Due tasks are sorted by priority (see sort_by_priority).
         2. Tasks are accepted greedily while they fit the owner's available minutes.
         3. Accepted fixed-time tasks are placed at their preferred time; if that slot is taken
-           or outside the day window, they fall back to the next free slot.
+           or outside the day window, they move to the first free slot after it (or earlier
+           only if nothing later fits).
         4. Flexible tasks fill the earliest free gaps starting at the owner's day start.
         """
         day = day or date.today()
@@ -268,8 +269,10 @@ class Scheduler:
         def is_free(start: int, end: int) -> bool:
             return start >= day_start and end <= day_end and all(end <= b0 or start >= b1 for b0, b1 in busy)
 
-        def first_free_slot(length: int) -> Optional[int]:
-            candidates = sorted({day_start} | {b1 for _, b1 in busy})
+        def first_free_slot(length: int, after: int = 0) -> Optional[int]:
+            """Earliest free start at or after `after` (and the day start) that fits `length` minutes."""
+            earliest = max(after, day_start)
+            candidates = sorted({earliest} | {b1 for _, b1 in busy if b1 > earliest})
             for start in candidates:
                 if is_free(start, start + length):
                     return start
@@ -295,15 +298,23 @@ class Scheduler:
             if is_free(wanted, wanted + task.duration_minutes):
                 place(task, wanted, f"{base_reason(task)}; at your preferred time {task.preferred_time}")
                 continue
-            slot = first_free_slot(task.duration_minutes)
+            # Prefer the next free time after the wanted one; only go earlier if nothing later fits.
+            slot = first_free_slot(task.duration_minutes, after=wanted)
+            if slot is None:
+                slot = first_free_slot(task.duration_minutes)
             if slot is None:
                 plan.skipped.append((task, "no free slot left in your day window"))
                 continue
+            blocker = next(
+                (s.task.title for s in plan.scheduled
+                 if s.start < wanted + task.duration_minutes and wanted < s.end),
+                None,
+            )
+            why = f"'{blocker}' already had that time" if blocker else "it falls outside your day"
             place(
                 task,
                 slot,
-                f"{base_reason(task)}; moved from {task.preferred_time} because that slot was taken "
-                f"or outside your day",
+                f"{base_reason(task)}; moved from {task.preferred_time} to {format_time(slot)} because {why}",
             )
 
         for task in flexible:
