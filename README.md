@@ -47,11 +47,51 @@ pip install -r requirements.txt
 Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+=== Today's Schedule ===
+Owner: Jordan | 90 min available | day 07:00-21:00
+Daily plan for 2026-11-01:
+  07:00-07:30 - Morning walk (Mochi, 30 min) [priority: high]
+      why: high priority, recurs daily; moved from 08:00 because that slot was taken or outside your day
+  07:30-07:40 - Feeding (Mochi, 10 min) [priority: high]
+      why: high priority, recurs daily; placed in the earliest free slot
+  07:40-07:55 - Brushing (Luna, 15 min) [priority: low]
+      why: low priority, recurs weekly; placed in the earliest free slot
+  08:00-08:05 - Meds (Luna, 5 min) [priority: high]
+      why: high priority; at your preferred time 08:00
+  18:00-18:30 - Evening walk (Mochi, 30 min) [priority: medium]
+      why: medium priority, recurs daily; at your preferred time 18:00
+  SKIPPED Play session (Luna): needs 20 min but only 15 min of your time is left
+  WARNING: 'Meds' (Luna, 08:00) overlaps 'Morning walk' (Mochi, 08:00)
+
+=== All tasks sorted by time ===
+     08:00  Morning walk   Mochi    30 min  [high] (open)
+     08:00  Meds           Luna      5 min  [high] (open)
+     18:00  Evening walk   Mochi    30 min  [medium] (open)
+  flexible  Feeding        Mochi    10 min  [high] (open)
+  flexible  Brushing       Luna     15 min  [low] (open)
+  flexible  Play session   Luna     20 min  [medium] (open)
+
+=== All tasks sorted by priority ===
+     08:00  Meds           Luna      5 min  [high] (open)
+     08:00  Morning walk   Mochi    30 min  [high] (open)
+  flexible  Feeding        Mochi    10 min  [high] (open)
+     18:00  Evening walk   Mochi    30 min  [medium] (open)
+  flexible  Play session   Luna     20 min  [medium] (open)
+  flexible  Brushing       Luna     15 min  [low] (open)
+
+=== Filter: Luna's tasks ===
+  flexible  Brushing       Luna     15 min  [low] (open)
+     08:00  Meds           Luna      5 min  [high] (open)
+  flexible  Play session   Luna     20 min  [medium] (open)
+
+=== Conflict check ===
+  WARNING: 'Morning walk' (Mochi, 08:00) overlaps 'Meds' (Luna, 08:00)
+
+=== Recurring task ===
+  Marked 'Feeding' complete; next one due 2026-11-02
+
+=== Filter: completed tasks ===
+  flexible  Feeding        Mochi    10 min  [high] (done)
 ```
 
 ## 🧪 Testing PawPal+
